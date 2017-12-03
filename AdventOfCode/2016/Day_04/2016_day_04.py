@@ -1,93 +1,104 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
 # http://adventofcode.com/2016/day/4
+# https://pythex.org/
 
 ###################################################################################################################################################################
 #  
-#  Solution to day 4 part 1: 
-#  Solution to day 4 part 2: 
+#  Solution to day 4 part 1: 361724
+#  Solution to day 4 part 2: 482
 #
 ###################################################################################################################################################################
 
+import re
+import operator
 
 ###################################################################################################################################################################
 ############################################################################ PROBLEM 1 ############################################################################
 
+def extractRoomNameComponets(room):
+    room = re.sub(r"\s+", "", room)
+    # room = re.sub("-", "", room)
+    parts = re.compile("([a-z\-]+)([0-9]+)(\[)([a-z]+)(\])").split(room.strip())
+    return parts[1], parts[2], parts[4]
+### extractRoomNameComponets
 
-def isValidRoom(room):
+
+def getChecksumFromLetters(letters):
+    # count number of letters
+    letterFreq = {}
+    for letter in letters:
+        if letter == "-":
+            pass
+        elif letter in letterFreq:
+            letterFreq[letter] = letterFreq[letter] +1
+        else:
+            letterFreq[letter] = 1
+    
+    # build structure to hold count and letter
+    # sort structure
+    sorted_x = sorted(sorted(letterFreq.items(), key = lambda x : x[0]), key = lambda x : x[1], reverse = True)
+
+    # build the checksum
+    checksum = ""
+    for idx in xrange(5):
+        checksum += sorted_x[idx][0]
+
+    return checksum
+### getChecksumFromLetters
+
+
+def decryptName(name, sectorId):
+    shift = int(sectorId) % 26
+
+    decrypted = ""
+    for letter in name:
+        if letter == "-":
+            decrypted += " "
+        else:
+            num = ord(letter)
+            num += shift
+            if num > ord('z'):
+                num -= 26
+
+            decrypted += chr(num)
+    return decrypted
+### decryptedName
 
 
 ################################################################################################################################################################
 ########################################################################### PART 1 #############################################################################
 
 
-# valid = []
-# invalid = []
+# input_file = "part_1_sample.txt"
+input_file = "part_1.txt"
 
+sectorSum = 0
 
-# with open("part_1.data") as f:
-#     for line in f:
-#         parts = line.strip().split(" ")
+with open(input_file) as f:
+    for line in f:
+        letters, sectorId, checksumExpected = extractRoomNameComponets(line)
+        checksumActual = getChecksumFromLetters(letters)
 
-#         a = int(parts[0].strip())
-#         b = int(parts[1].strip())
-#         c = int(parts[2].strip())
+        if checksumActual == checksumExpected:
+            sectorSum += int(sectorId)
 
-#         if isValidTriangle(a,b,c):
-#             valid.append(parts)
-#         else:
-#             invalid.append(parts)
-
-
-# print "Solution to day 2 part 1: " + str(len(valid))
+print "Solution to day 4 part 1: " + str(sectorSum)
 
 
 ################################################################################################################################################################
 ########################################################################### PART 2 #############################################################################
 
 
-# valid = []
-# invalid = []
+# input_file = "part_2_sample.txt"
+input_file = "part_1.txt"
 
+with open(input_file) as f:
+    for line in f:
+        letters, sectorId, checksumExpected = extractRoomNameComponets(line)
 
-# with open("part_1.data") as f:
-#     try:
-#         while True:
-#             line1, line2, line3 = next(f), next(f), next(f)
+        name = decryptName(letters, sectorId)
 
-#             parts = line1.strip().split(" ")
-#             a1 = int(parts[0].strip())
-#             b1 = int(parts[1].strip())
-#             c1 = int(parts[2].strip())
+        if "north" in name:
+            print "Solution to day 4 part 1: " + str(sectorId)
 
-#             parts = line2.strip().split(" ")
-#             a2 = int(parts[0].strip())
-#             b2 = int(parts[1].strip())
-#             c2 = int(parts[2].strip())
-
-#             parts = line3.strip().split(" ")
-#             a3 = int(parts[0].strip())
-#             b3 = int(parts[1].strip())
-#             c3 = int(parts[2].strip())3
-
-#             if isValidTriangle(a1, a2, a3):
-#                 valid.append(parts)
-#             else:
-#                 invalid.append(parts)
-
-
-#             if isValidTriangle(b1, b2, b3):
-#                 valid.append(parts)
-#             else:
-#                 invalid.append(parts)
-
-#             if isValidTriangle(c1, c2, c3):
-#                 valid.append(parts)
-#             else:
-#                 invalid.append(parts)
-
-#     except:
-#         pass
-
-
-# print "Solution to day 2 part 2: " + str(len(valid))
