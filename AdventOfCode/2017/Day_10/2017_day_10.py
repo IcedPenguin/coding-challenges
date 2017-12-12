@@ -134,10 +134,12 @@ for testCase in asciiTestCases:
         print "FAIL FAIL FAIL: \nexected: %s   \n actual: %s" % (expected, knotHash)
 
 
-rope = getFreshRope(arraySize)
+
 with open(inputFile) as f:
     for line in f:
+        rope = getFreshRope(arraySize)
         inputLengths = convertAsciiToLengths(line)
         knotHash = performKnotHasing(rope, 64, inputLengths)
+        print knotHash + "\t"  + str(line)
 
 print "Solution to day 10 part 2: " + knotHash
