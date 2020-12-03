@@ -1,6 +1,6 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
-# https://adventofcode.com/2020/day/1
+# https://adventofcode.com/2020/day/2
 
 
 ###################################################################################################################################################################
@@ -69,7 +69,7 @@ def parse_password_rule(raw_rule):
     #  char: char
     plain = raw_rule.strip()
     parts = plain.replace("-", " ").split(" ")
-    # print(parts)
+
     min_count = int(parts[0])
     max_count = int(parts[1])
     target_char = parts[2]
@@ -84,7 +84,6 @@ for a in file_lines:
     # print(s)
     # print(l)
     # print(c)
-
     # print(s, "\t", l, "\t", c)
 
     target_letter_count = 0
@@ -155,7 +154,7 @@ for a in file_lines:
     position_one_matches = check_position_for_match(password, s, c)
     position_two_matches = check_position_for_match(password, l, c) 
 
-    result = bool(position_one_matches) ^ bool(position_two_matches)
+    result = bool(position_one_matches) ^ bool(position_two_matches) # xor
 
 
     if result:
