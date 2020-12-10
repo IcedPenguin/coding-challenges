@@ -145,8 +145,6 @@ test_equal(boarding_pass.get_id(),     820, "sample input 4, get_id")
 print("-------------------------")
 
 
-with open(input_file) as f:
-    file_lines = f.readlines()
 
 with open(input_file) as f:
     max_id = -1
