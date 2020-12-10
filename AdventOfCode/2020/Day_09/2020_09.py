@@ -83,6 +83,7 @@ def test_equal(actual, expected, message):
 
 
 sample_input_file   = "2020_09_sample.txt"
+sample_input_file_2 = "2020_09_sample_2.txt"
 input_file          = "2020_09_input.txt"
 
 
@@ -99,35 +100,71 @@ class XmasCipher:
                 a = self.sequence[i]
                 b = self.sequence[j]
 
-                print("test: x={0}\ta={1}\tb={2}".format(test_number, a, b))
+                # print("test: x={0}\ta={1}\tb={2}".format(test_number, a, b))
                 if a + b == test_number:
-                    pass
+                    # we found a pair 
+                    return True
 
 
-        pass
+        return False
 
 
-    def add_next_number(self, number):
-        if self.test_next_number(number):
+    def add_next_number(self, number, override_test=False):
+        if override_test or self.test_next_number(number):
             # the provided number was valid, add to list.
             self.sequence.pop(0)
             self.sequence.append(number)
+            return True
 
         else:
             # the provided number was bad. throw and error
-            pass
+            return False
 
+    def print_sequence(self):
+        print(self.sequence)
 
 ##### XmasCipher
 
-print("--- P1 sample input ---")
+def read_xmas_cipher_file(file_name):
+    all_cipher_entrier = []
+    with open(file_name) as f:
+        for line in f:
+            all_cipher_entrier.append(int(line.strip()))
 
-# sample P1A -  load 1-25.  with preable 25
-# test 26, 49, 100, 50
-# load 45
-# test 26, 65, 64, 66
+    return all_cipher_entrier
+### read_xmas_cipher_file
+
+
+print("--- P1 sample input ---")
+read_xmas_cipher_file_sample_1 = read_xmas_cipher_file(sample_input_file)
+xmas_ciphter_sample_1 = XmasCipher(25, read_xmas_cipher_file_sample_1[:25])
+test_equal(xmas_ciphter_sample_1.test_next_number(26), True, "P1A test 26 failed")
+test_equal(xmas_ciphter_sample_1.test_next_number(49), True, "P1A test 49 failed")
+test_equal(xmas_ciphter_sample_1.test_next_number(100), False, "P1A test 100 failed")
+test_equal(xmas_ciphter_sample_1.test_next_number(50), False, "P1A test 50 failed")
+
+# this mutates the object. not great for a unit test, but this is a coding comp. not production code.
+test_equal(xmas_ciphter_sample_1.add_next_number(45), True, "P1A loading 45 failed")
+
+test_equal(xmas_ciphter_sample_1.test_next_number(26), True, "P1A test 26 failed")
+test_equal(xmas_ciphter_sample_1.test_next_number(65), False, "P1A test 65 failed")
+test_equal(xmas_ciphter_sample_1.test_next_number(64), True, "P1A test 64 failed")
+test_equal(xmas_ciphter_sample_1.test_next_number(66), True, "P1A test 66 failed")
+
+test_equal(xmas_ciphter_sample_1.add_next_number(45), True, "P1A loading 45 failed")
 
 # sample P1B - load the long list above, with preamble 5
+read_xmas_cipher_file_sample_2 = read_xmas_cipher_file(sample_input_file_2)
+xmas_ciphter_sample_2 = XmasCipher(5, read_xmas_cipher_file_sample_2[:5])
+
+sample_found = False
+for i in range(5, len(read_xmas_cipher_file_sample_2), 1):
+    result = xmas_ciphter_sample_1.add_next_number(read_xmas_cipher_file_sample_2[i])
+    if not result:
+        test_equal(result, 127, "P1B first invalid number not 127")
+        sample_found = True
+
+test_equal(sample_found, True, "P1B No invalid numbers found")
 
 print("-------------------------")
 
