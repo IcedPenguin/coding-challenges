@@ -5,9 +5,9 @@
 
 ###################################################################################################################################################################
 #  
-#  Solution to day 9 part 1: 
+#  Solution to day 9 part 1: 1492208709
 #
-#  Solution to day 9 part 2: 
+#  Solution to day 9 part 2: 238243506
 #
 ###################################################################################################################################################################
 
@@ -90,18 +90,21 @@ input_file          = "2020_09_input.txt"
 class XmasCipher:
     def __init__(self, preamble_length, preamble_sequence):
         self.preamble_length = preamble_length
-        self.sequence = preamble_sequence.copy()
+        self.sequence = list(preamble_sequence)
         
 
     def test_next_number(self, test_number):
         # return True if valid, False is not valid
+        # print("Test: x={0}\tsq={1}".format(test_number, self.sequence))
+
         for i in range(self.preamble_length):
             for j in range(i+1, self.preamble_length, 1):
                 a = self.sequence[i]
                 b = self.sequence[j]
 
-                # print("test: x={0}\ta={1}\tb={2}".format(test_number, a, b))
+                
                 if a + b == test_number:
+                    # print("test: x={0}\ta={1}\tb={2}".format(test_number, a, b))
                     # we found a pair 
                     return True
 
@@ -111,13 +114,12 @@ class XmasCipher:
 
     def add_next_number(self, number, override_test=False):
         if override_test or self.test_next_number(number):
-            # the provided number was valid, add to list.
             self.sequence.pop(0)
             self.sequence.append(number)
             return True
 
         else:
-            # the provided number was bad. throw and error
+            # the provided number was bad. ignore it.
             return False
 
     def print_sequence(self):
@@ -135,6 +137,17 @@ def read_xmas_cipher_file(file_name):
 ### read_xmas_cipher_file
 
 
+def find_first_non_sum_value(sequences, xmas_ciphter, preamble_length):
+
+    for i in range(len(sequences)):
+        result = xmas_ciphter.add_next_number(sequences[i])
+        if not result:
+            # test_equal(sequences[i], 127, "P1B first invalid number not 127")
+            return True, sequences[i]
+
+    return False, None
+### find_first_non_sum_value
+
 print("--- P1 sample input ---")
 read_xmas_cipher_file_sample_1 = read_xmas_cipher_file(sample_input_file)
 xmas_ciphter_sample_1 = XmasCipher(25, read_xmas_cipher_file_sample_1[:25])
@@ -143,7 +156,6 @@ test_equal(xmas_ciphter_sample_1.test_next_number(49), True, "P1A test 49 failed
 test_equal(xmas_ciphter_sample_1.test_next_number(100), False, "P1A test 100 failed")
 test_equal(xmas_ciphter_sample_1.test_next_number(50), False, "P1A test 50 failed")
 
-# this mutates the object. not great for a unit test, but this is a coding comp. not production code.
 test_equal(xmas_ciphter_sample_1.add_next_number(45), True, "P1A loading 45 failed")
 
 test_equal(xmas_ciphter_sample_1.test_next_number(26), True, "P1A test 26 failed")
@@ -157,34 +169,101 @@ test_equal(xmas_ciphter_sample_1.add_next_number(45), True, "P1A loading 45 fail
 read_xmas_cipher_file_sample_2 = read_xmas_cipher_file(sample_input_file_2)
 xmas_ciphter_sample_2 = XmasCipher(5, read_xmas_cipher_file_sample_2[:5])
 
-sample_found = False
-for i in range(5, len(read_xmas_cipher_file_sample_2), 1):
-    result = xmas_ciphter_sample_1.add_next_number(read_xmas_cipher_file_sample_2[i])
-    if not result:
-        test_equal(result, 127, "P1B first invalid number not 127")
-        sample_found = True
-
-test_equal(sample_found, True, "P1B No invalid numbers found")
+found, non_sum_value = find_first_non_sum_value(read_xmas_cipher_file_sample_2[5:], xmas_ciphter_sample_2, 5)
+test_equal(non_sum_value, 127, "P1B first invalid number not 127")
+test_equal(found, True, "P1B No invalid numbers found")
 
 print("-------------------------")
 
 
 
+read_xmas_cipher_file_contents = read_xmas_cipher_file(input_file)
+xmas_ciphter = XmasCipher(25, read_xmas_cipher_file_contents[:25])
 
+found, non_sum_value = find_first_non_sum_value(read_xmas_cipher_file_contents[25:], xmas_ciphter, 25)
 
-print("Solution to day 9 part 1: {0}".format(-1))
+print("Solution to day 9 part 1: {0}".format(non_sum_value))
 
 
 ###################################################################################################################################################################
 ############################################################################ PROBLEM 2 ############################################################################
+#
+#   --- Part Two ---
+#   The final step in breaking the XMAS encryption relies on the invalid number you just found: you 
+#   must find a contiguous set of at least two numbers in your list which sum to the invalid number 
+#   from step 1.
+#   
+#   Again consider the above example:
+#   
+#       35
+#       20
+#       15
+#       25
+#       47
+#       40
+#       62
+#       55
+#       65
+#       95
+#       102
+#       117
+#       150
+#       182
+#       127
+#       219
+#       299
+#       277
+#       309
+#       576
+#   
+#   In this list, adding up all of the numbers from 15 through 40 produces the invalid number from 
+#   step 1, 127. (Of course, the contiguous set of numbers in your actual list might be much longer.)
+#   
+#   To find the encryption weakness, add together the smallest and largest number in this contiguous 
+#   range; in this example, these are 15 and 47, producing 62.
+#   
 
+def find_contiguous_set_summing_to_target_return_smallest_and_largest(sequence, target):
+    len_sequence = len(sequence)
+    for i in range(len_sequence -1):
+
+        sum_of_numbers = 0
+        j = 0
+
+        while sum_of_numbers < target and i + j < len_sequence:
+            sum_of_numbers += sequence[i + j]
+            j += 1
+
+
+        if sum_of_numbers == target:
+            sequence_slice = sequence[i : i+j]
+            # print("slice found: i={0}\tj={1}\tx={2}\tl={3}".format(i, i+j, target, sequence_slice))
+            sorted_numbers = sorted(sequence_slice)
+            
+            return True, sorted_numbers[0], sorted_numbers[-1]
+
+    # we failed to find the sum
+    return False, None, None
+
+### find_contiguous_set_summing_to_target_return_smallest_and_largest
 
 print("--- P2 sample input ---")
+
+xmas_cipher_file_sample_2_contents = read_xmas_cipher_file(sample_input_file_2)
+xmas_ciphter_sample_2 = XmasCipher(5, read_xmas_cipher_file_sample_2[:5])
+found, smallest, largest = find_contiguous_set_summing_to_target_return_smallest_and_largest(read_xmas_cipher_file_sample_2, 127)
+
+test_equal(found, True, "P2A List of contiguous numbers was not found.")
+test_equal(smallest, 15, "P2A returned smallest was incorrect")
+test_equal(largest, 47, "P2A returned largest was incorrect")
+test_equal(smallest + largest, 62, "P2A math doesn't work")
 
 print("-------------------------")
 
 
 
-print("Solution to day 9 part 2: {0}".format(-1))
+found, smallest, largest = find_contiguous_set_summing_to_target_return_smallest_and_largest(read_xmas_cipher_file_contents, non_sum_value)
+
+print("Solution to day 9 part 2: {0}".format(smallest + largest))
 
  
