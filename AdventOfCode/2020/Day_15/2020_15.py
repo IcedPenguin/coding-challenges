@@ -76,11 +76,6 @@ def test_equal(actual, expected, message):
         print("FAIL: Found={0}  Expected={1}    {2}".format(actual, expected, message))
 
 
-sample_input_file_1 = "2020_15_sample_1.txt"
-sample_input_file_2 = "2020_15_sample_2.txt"
-input_file          = "2020_15_input.txt"
-
-
 class ClassName:
     def __init__(self):
         pass
