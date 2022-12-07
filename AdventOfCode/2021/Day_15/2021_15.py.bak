@@ -1,0 +1,237 @@
+#!/bin/python
+# -*- coding: utf-8 -*-
+# https://adventofcode.com/2021/day/15
+
+
+###################################################################################################################################################################
+#  
+#  Solution to day 15 part 1: 
+#
+#  Solution to day 15 part 2: 
+#
+###################################################################################################################################################################
+
+import resource
+import unittest
+import sys
+
+sys.setrecursionlimit(15000)
+
+# resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+
+###################################################################################################################################################################
+############################################################################# Common ##############################################################################
+
+
+sample_input_file_1 = "2021_sample_1.txt"
+sample_input_file_2 = "2021_sample_2.txt"
+input_file          = "2021_input.txt"
+
+
+def read_file_into_array(filename, asInt):
+    lines = []
+    with open(filename) as f:
+        for line in f:
+            line = line.strip()
+            if asInt:
+                lines.append(int(line))
+            else:
+                lines.append(line)
+
+    return lines
+### read_file_into_array
+
+def read_and_parse_single_line_input(filename, delimeter, asInt):
+    array = read_file_into_array(filename, False)
+    parts = array[0].split(delimeter)
+    return parts
+### read_and_parse_single_line_input
+
+
+###################################################################################################################################################################
+############################################################################ PROBLEM 1 ############################################################################
+#  
+#  --- Day 15: Chiton ---
+#  You've almost reached the exit of the cave, but the walls are getting closer together. Your submarine can 
+#  barely still fit, though; the main problem is that the walls of the cave are covered in chitons, and it would 
+#  be best not to bump any of them.
+#  
+#  The cavern is large, but has a very low ceiling, restricting your motion to two dimensions. The shape 
+#  of the cavern resembles a square; a quick scan of chiton density produces a map of risk level throughout 
+#  the cave (your puzzle input). For example:
+#  
+#      1163751742
+#      1381373672
+#      2136511328
+#      3694931569
+#      7463417111
+#      1319128137
+#      1359912421
+#      3125421639
+#      1293138521
+#      2311944581
+#  
+#  You start in the top left position, your destination is the bottom right position, and you cannot 
+#  move diagonally. The number at each position is its risk level; to determine the total risk of an 
+#  entire path, add up the risk levels of each position you enter (that is, don't count the risk level 
+#  of your starting position unless you enter it; leaving it adds no risk to your total).
+#  
+#  Your goal is to find a path with the lowest total risk. In this example, a path with the lowest 
+#  total risk is highlighted here:
+#  
+#      1163751742
+#      1381373672
+#      2136511328
+#      3694931569
+#      7463417111
+#      1319128137
+#      1359912421
+#      3125421639
+#      1293138521
+#      2311944581
+#  
+#  The total risk of this path is 40 (the starting position is never entered, so its risk is not counted).
+#  
+#  What is the lowest total risk of any path from the top left to the bottom right?
+#  
+
+
+def parse_chiton_map(raw_chiton_details):
+    width = len(raw_chiton_details[0])
+    height = len(raw_chiton_details)
+
+    chiton_map = {}
+
+    for y in range(height):
+        for x in range(width):
+            chiton_map[ (x,y) ] = int(raw_chiton_details[y][x])
+
+    return chiton_map, width, height
+### parse_chiton_map
+
+
+def find_least_risky_path(chiton_map, width, height):
+    best_route, lowest_risk_score = walk_grid(
+        chiton_map, width, height,
+        (0,0),
+        # [],
+        {}, 
+        0,
+        ["no route found yet"],
+        float("inf")
+    )
+
+    return lowest_risk_score
+### find_least_risky_path
+
+import copy
+
+def walk_grid(chiton_map, width, height, current_point, visited_points, cumulative_risk_score, current_best_route, current_lowest_risk_score):
+    x = current_point[0]
+    y = current_point[1]
+
+    # Are we not on a valid location? Fail
+    if x < 0 or x >= width or y < 0 or y >= height:
+        return visited_points, float("inf") # we fell off the grid
+
+    # Are we revisting a node? Fail
+    if current_point in visited_points:
+        return visited_points, float("inf") # we fell off the grid        
+
+    if len(visited_points) != 0:    # increment score for current space, unless we are on the starting point
+        cumulative_risk_score += chiton_map[(x, y)]
+
+    # This is a valid next location, perform record keeping.
+    # visited_points.append(current_point)
+    visited_points[current_point] = 1
+    
+    
+    # is our path less efficient than the current best route already? Fail
+    if cumulative_risk_score >= current_lowest_risk_score:
+        return visited_points, float("inf") # we fell off the grid        
+
+    # Are we at the target location? Are we done?
+    if current_point == (width -1, height -1):
+        print("path: score={0}".format(cumulative_risk_score))
+        return visited_points, cumulative_risk_score
+
+    # Move on to the next point.
+    ## TODO
+    neighbors = find_neighbors(x, y)
+    for neighbor in neighbors:
+        neighbor_route, neighbor_risk_score = walk_grid(chiton_map, width, height, neighbor, copy.deepcopy(visited_points), cumulative_risk_score, current_best_route, current_lowest_risk_score)
+
+        if neighbor_risk_score < current_lowest_risk_score:
+            current_lowest_risk_score = neighbor_risk_score
+            current_best_route = neighbor_route
+
+    return current_best_route, current_lowest_risk_score
+### walk_grid
+
+
+
+def find_neighbors(x, y):
+    return [(x-1, y), (x+1,y), (x, y-1), (x,y+1)]
+
+
+
+class Day15PartOneTests(unittest.TestCase):
+
+    
+    def test__part_1__sample_input(self):
+        print("")
+        lines = read_file_into_array(sample_input_file_1, False)
+        chiton_map, width, height = parse_chiton_map(lines)
+        risk_score = find_least_risky_path(chiton_map, width, height)
+        self.assertEqual(40, risk_score)
+
+
+    # def test__part_1__challenge_input(self):
+    #     print("")
+    #     lines = read_file_into_array(input_file, False)
+    #     chiton_map, width, height = parse_chiton_map(lines)
+    #     risk_score = find_least_risky_path(chiton_map, width, height)
+
+    #     print("Solution to day 15 part 1: {0}".format(risk_score))
+        
+
+# 52043 Too high
+
+#### implement a better path finding algo. DFS is too expensive. (works on sample input, barely works on part 1, will fail misribly on part 2)
+### https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
+
+
+###################################################################################################################################################################
+############################################################################ PROBLEM 2 ############################################################################
+
+
+class Day15PartTwoTests(unittest.TestCase):
+
+    
+    # def test__part_2__sample_input(self):
+    #     print("")
+    #     print(sample_input_file_2)
+    #     # self.assertEqual(10, 11)
+
+
+    # def test__part_2__challenge_input(self):
+    #     print("")
+    #     print(input_file)
+    #     print("Solution to day 15 part 2: {0}".format(-1))
+        
+
+    pass
+
+# print("Solution to day 15 part 2: {0}".format(-1))
+ 
+
+ 
+###################################################################################################################################################################
+########################################################################## RUN THE TESTS ##########################################################################
+
+
+# run then unit tests "last"
+if __name__ == '__main__':
+    unittest.main()
+ 
+
